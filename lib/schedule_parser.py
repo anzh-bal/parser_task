@@ -10,25 +10,54 @@ def transform_schedule (keywords, parameters, input, output):
     """
     return
 
-def read_sch():
+def read_sch(path):
+    file = open("test_schedule.inc")
+    txt = file.read()
+    return txt
 
-def inspect_sch():
+#def inspect_sch():
 
-def clean_sch():
+def clean_sch(text):
 
-def parse_sch():
+    str = text.split('\n')
+    new_list = []
+    for i in range (len(str)):
+        if re.search ('--', str [i]) == None:
+            if re.search('\n', str[i]) == None:
+                new_list.append(str[i])
 
-def extract_keyword_block():
+    return new_list
 
-def extract_lines_from_keyword_block():
+a = read_sch('C:/Users/AB/Documents/study/parser_task')
+clean_sch(a)
 
-def parse_keyword_block():
 
-def parse_keyword_DATE_line():
+#def parse_sch():
 
-def parse_keyword_COMPDAT_line():
+#def extract_keyword_block():
 
-def parse_keyword_COMPDATL_line():
+#def extract_lines_from_keyword_block():
 
-def result_to_csv():
+#def parse_keyword_block():
+
+def parse_keyword_DATE_line(str):
+    return re.sub('/','', str)
+
+def parse_keyword_COMPDAT_line(list):
+    comp = []
+    for i in range(len(list)):
+        if list[i] == 'COMPDAT':
+            comp.append (list[i+1])
+            re.split(' ', list[i+1])
+        return comp
+
+def parse_keyword_COMPDATL_line(list):
+    comptl = []
+    for i in range(len(list)):
+        if list[i] == 'COMPDATL':
+            comp.append(list[i + 1])
+            re.split(' ', list[i + 1])
+        return comptl
+
+#def result_to_csv():
 
