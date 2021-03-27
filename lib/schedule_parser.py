@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import numpy as np
+import csv
 import pandas
 import pytest
 
@@ -11,8 +12,6 @@ def read_sch(text: str):
         text = text.read()
     return text
 
-#def inspect_sch():
-
 
 def clean_sch(text: str):
 
@@ -20,6 +19,11 @@ def clean_sch(text: str):
     text = re.sub(r'\s*\n+', '\n', text)
     return text
 
+def parse_keyword_COMPDATL_line(well_comp_line: str):
+    well_comp_line = re.sub(r"'|(\s+/$)", "", well_comp_line)
+    well_comp_line = re.split("\s+", well_comp_line)
+
+    return well_comp_line
 
 def parse_schedule(text: str):   #, keywords_tuple = ("DATES", "COMPDAT", "COMPDATL"): Tuple[str]) #-> List[List[str]]:
 
@@ -30,35 +34,37 @@ def parse_schedule(text: str):   #, keywords_tuple = ("DATES", "COMPDAT", "COMPD
     @return: list keywords text blocks ending with a newline "/"
     """
     keywords_tuple = ("DATES", "COMPDAT", "COMPDATL")
-    a = read_sch(text)
-    a = clean_sch(a)
-    clean = parse_default(a)   #clean text
+    clean = parse_default(text)
     list_dates_compdat = extract_keyword_block(clean)
     compdat = []
     dates = []
-    #print(list_dates_compdat)
-    for i in range(len(list_dates_compdat)):
+    print(list_dates_compdat)
+    for i in range((len(list_dates_compdat))):
         if (re.search(r'DATES', list_dates_compdat[i])) is None:
             if len(dates)==0:
                 dates.append(np.nan)
-                compdat.append(np.nan)
-            else:
-                dates.append(dates[-1])
-                compdat.append(dates[-1])
-            if (re.search(r'COMPDAT', list_dates_compdat[i])) is not None:
-                compdat.append(parse_keyword_COMPDAT_line (re.sub(r'COMPDAT\s+', '', list_dates_compdat[i])))
-            elif (re.search(r'COMPDATl', list_dates_compdat[i])) is not None:
-                compdat.append(parse_keyword_COMPDAT_line (re.sub(r'COMPDATl', '', list_dates_compdat[i])))
+                compdat.append([np.nan])
+
+            if (re.search(r'COMPDATL', list_dates_compdat[i])) is not None:
+                b = re.sub(r'COMPDATL', '', list_dates_compdat[i])
+                a = re.split('\n', b)
+                for k in range(len(a)):
+                    compdat.append(parse_keyword_COMPDATL_line(a[k]))
+            elif (re.search(r'COMPDAT\s+', list_dates_compdat[i])) is not None:
+                b = re.sub(r'COMPDAT', '', list_dates_compdat[i])
+                a = re.split('\n', b)
+
+                for k in range(len(a)):
+                    compdat.append(parse_keyword_COMPDAT_line (a[k]))
+                #compdat.append(parse_keyword_COMPDATl_line (re.sub(r'COMPDATl\s+', '', list_dates_compdat[i])))
         else:
+
             dates.append(parse_keyword_DATE_line(re.sub(r'DATES', '', list_dates_compdat[i])))
-            compdat.append(parse_keyword_DATE_line(re.sub(r'DATES', '', list_dates_compdat[i])))
+            compdat.append([parse_keyword_DATE_line(re.sub(r'DATES', '', list_dates_compdat[i]))])
+    #compdat = re.findall(r"\w+", str(compdat))
+    #result_to_csv(compdat)
 
-
-    print(compdat)
-
-    result_to_csv(compdat)
-
-    return list_dates_compdat
+    return compdat
 
 
 def extract_keyword_block(text: str):
@@ -87,28 +93,22 @@ def parse_keyword_COMPDAT_line(well_comp_line: str):
     return well_comp_line
 
 
-def parse_keyword_COMPDATL_line(well_comp_line: str):
-    well_comp_line = re.sub(r"'|(\s+/$)", "", well_comp_line)
-    well_comp_line = re.split("\s+", well_comp_line)
 
-    return well_comp_line
 
 
 def parse_default(well_comp_line: str):
     def f(match):
         r = match.group(0)
         r = re.sub('\*', '', r)
-        return str(int(r) * " default ")
+        return str(int(r) * " DEFAULT ")
     well_comp_line = re.sub('(\d+\*)', f, well_comp_line)
     return well_comp_line
 
 def result_to_csv(text):#: list[list[str]]):
-    import csv
-    with open('output.csv', 'w', newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        for item in text:
-            csv_writer.writerow([item])
 
+    with open('output.csv', 'w', newline='', ) as csv_file:
 
-
-parse_schedule('../test_schedule.inc')
+       csv_writer = csv.writer(csv_file)
+       for item in text:
+           csv_writer.writerow([item])
+#parse_schedule('../test_schedule.inc')
